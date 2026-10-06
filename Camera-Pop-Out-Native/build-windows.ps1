@@ -1,5 +1,5 @@
 # One-time Windows compiler prerequisites are documented in README.md.
-param([string]$TemplateRef = '3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc')
+param([string]$TemplateRef = '3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc', [string]$WorkDirectory = '')
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 Start-Transcript -Path (Join-Path $root 'build-log.txt') -Force
@@ -11,7 +11,7 @@ try {
     if (-not (Test-Path $vswhere)) { throw 'Install Visual Studio 2022 Build Tools with Desktop development with C++.' }
     $vs = & $vswhere -latest -version '[17.0,18.0)' -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     if (-not $vs) { throw 'Visual Studio 2022 C++ tools are missing. Add the Desktop development with C++ workload.' }
-    $work = Join-Path $root 'build-work'
+    $work = if ($WorkDirectory) { $WorkDirectory } else { Join-Path $root 'build-work' }
     New-Item -ItemType Directory -Force -Path $work | Out-Null
     $archive = Join-Path $work 'official-template.zip'
     $url = 'https://github.com/obsproject/obs-plugintemplate/archive/' + [Uri]::EscapeDataString($TemplateRef) + '.zip'
