@@ -1,5 +1,5 @@
 # One-time Windows compiler prerequisites are documented in README.md.
-param([string]$TemplateRef = 'master')
+param([string]$TemplateRef = '3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc')
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 Start-Transcript -Path (Join-Path $root 'build-log.txt') -Force

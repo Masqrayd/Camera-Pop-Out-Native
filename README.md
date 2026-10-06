@@ -18,13 +18,13 @@ Lock blocks mouse movement and resizing; Windows keyboard layout commands can st
 
 ## Build with GitHub (no compiler installation on your PC)
 
-1. Create an empty GitHub repository, or use your existing plugin repository.
-2. Extract this source ZIP. Put the **contents** of Camera-Pop-Out-Native at the repository root, including `.github/workflows/windows-build.yml`. Do not put the enclosing folder at the root. GitHub's browser upload can omit dot folders: use GitHub Desktop to commit the extracted folder so the workflow is included.
-3. Push to main/master. Open the repository's **Actions → Build Windows plugin**. You can also choose **Run workflow** to run manually.
+1. Source is in `Camera-Pop-Out-Native/`; the workflow is at repository root in `.github/workflows/windows-build.yml`.
+2. Push changes to StartHere/main/master.
+3. Open **Actions → Build Windows plugin** to check the run. You can also choose **Run workflow** to run manually.
 4. When the Windows job succeeds, download **Camera-Pop-Out-Native-Windows** from its Artifacts section. Extract the downloaded artifact, then extract the inner Windows ZIP.
 5. Install the resulting camera-popout-native folder using the instructions below.
 
-The workflow has been authored, but has not been run in this environment. A successful build produces the DLL; a live OBS 32.2.2 test is still required. It uses the official OBS plugin template build system. The build refuses a template SDK newer than 32.2.2. The template reference defaults to master; record a successful template commit and use that commit in Run workflow for reproducible follow-up builds.
+The workflow has been authored, but has not been run in this environment. A successful build produces the DLL; a live OBS 32.2.2 test is still required. It uses the official OBS plugin template build system. The build refuses a template SDK newer than 32.2.2. The template defaults to pinned commit `3e7d7ac3b5342cd7d9b88890b9c70b472d1520fc` (OBS SDK 31.1.1), avoiding changes to upstream master.
 
 ## Changes in 0.2.0
 

@@ -1,0 +1,6 @@
+build-work/
+package/
+build-log.txt
+Camera-Pop-Out-Native-Windows.zip
+*.exe
+*.obj
