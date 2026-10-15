@@ -24,6 +24,9 @@ constexpr wchar_t CameraClass[] = L"MasqraydCameraPopoutNativeV1";
 constexpr wchar_t SettingsClass[] = L"MasqraydCameraSettingsNativeV1";
 HINSTANCE dllInstance;
 HWND cameraWindow = nullptr, settingsWindow = nullptr;
+// Broadcast Stack marks only this plugin's existing camera HWND. Rendering,
+// cropping and source ownership remain in this plugin while it is attached.
+bool stacked(HWND window) { return window && GetPropW(window, L"MasqraydBroadcastStack") != nullptr; }
 obs_display_t *display = nullptr;
 std::mutex stateMutex;
 obs_source_t *selectedSource = nullptr;
@@ -57,7 +60,7 @@ std::string narrow(const std::wstring &s)
 }
 void saveSettings()
 {
-    if (cameraWindow && !IsIconic(cameraWindow) && !IsZoomed(cameraWindow)) {
+    if (cameraWindow && !stacked(cameraWindow) && !IsIconic(cameraWindow) && !IsZoomed(cameraWindow)) {
         GetWindowRect(cameraWindow, &savedRect); // Screen coordinates across taskbar/monitor layouts.
     }
     char *dir = obs_module_config_path("");
@@ -187,6 +190,10 @@ void showCamera()
     }
     setSource(source); obs_source_release(source);
     SetWindowTextW(cameraWindow, wide("Camera Pop-Out: " + selectedName).c_str());
+    if (stacked(cameraWindow)) {
+        auto root = GetAncestor(cameraWindow, GA_ROOT);
+        ShowWindow(cameraWindow, SW_SHOW); ShowWindow(root, SW_RESTORE); SetForegroundWindow(root); return;
+    }
     SetWindowPos(cameraWindow,alwaysTop?HWND_TOPMOST:HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE|SWP_FRAMECHANGED);
     ShowWindow(cameraWindow,SW_RESTORE); SetForegroundWindow(cameraWindow);
 }
@@ -203,6 +210,10 @@ void contextMenu(HWND hwnd, POINT p)
     AppendMenuW(m,MF_STRING,Vertical,L"Vertical window (9:16)");
     AppendMenuW(m,MF_STRING,Save,L"Save layout");
     AppendMenuW(m,MF_STRING,Minimize,L"Minimize"); AppendMenuW(m,MF_STRING,Close,L"Close camera window");
+    if (stacked(hwnd)) {
+        for (int item : {Top, Lock, Square, Wide, Vertical, Minimize})
+            EnableMenuItem(m, item, MF_BYCOMMAND | MF_GRAYED);
+    }
     int id=TrackPopupMenu(m,TPM_RETURNCMD|TPM_RIGHTBUTTON,p.x,p.y,0,hwnd,nullptr);
     DestroyMenu(m);
     if (id==Choose) showSettings();
@@ -235,6 +246,7 @@ LRESULT CALLBACK cameraProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         }
         break;
     case WM_NCHITTEST: {
+        if (stacked(hwnd)) return HTCLIENT;
         if (locked) return HTCLIENT;
         RECT r;GetWindowRect(hwnd,&r);
         int x=GET_X_LPARAM(lp), y=GET_Y_LPARAM(lp);
@@ -249,6 +261,7 @@ LRESULT CALLBACK cameraProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
         return HTCLIENT;
     }
     case WM_DPICHANGED: {
+        if (stacked(hwnd)) return 0;
         auto *r=reinterpret_cast<RECT *>(lp);
         SetWindowPos(hwnd,nullptr,r->left,r->top,r->right-r->left,r->bottom-r->top,SWP_NOZORDER|SWP_NOACTIVATE);return 0;
     }
